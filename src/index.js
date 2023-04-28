@@ -14,6 +14,7 @@ const client = new Client({
 	],
 });
 
+
 // INITIALIZE DISTUBE
 const distube = new DisTube(client, {
 	searchSongs: 5,
@@ -23,115 +24,154 @@ const distube = new DisTube(client, {
 	leaveOnStop: false,
 });
 
-// EVENT LISTENERS
+// --- EVENT LISTENER BLOCK ---
+
 client.on('ready', (client, interaction) => {
 	console.log(`✅ ${client.user.username} is online! ✅`);
 });
 
+// EVENT LISTENER FOR SLASH COMMAND
 client.on('interactionCreate', (interaction) => {
-	if (!interaction.isChatInputCommand()) return;
 
-	if (interaction.commandName === 'help') {
-		const embed = new EmbedBuilder()
-			.setTitle('Daddy Bop Commands')
-			.setAuthor({
-				name: 'Daddy Bop',
-				iconURL: 'https://i.ibb.co/Bt83V56/DADDY-BOP-2.png',
-			})
-			.setColor('Random')
-			.setThumbnail('https://i.ibb.co/Bt83V56/DADDY-BOP-2.png')
-			.addFields(
-				{
-					name: '/play',
-					value: 'Plays a given song by a given artist',
-					inline: true,
-				},
-				{
-					name: '/pause',
-					value: 'Pauses the current song that is playing',
-					inline: true,
-				},
-				{
-					name: '/stop',
-					value: 'Stops the current song that is playing',
-					inline: true,
-				},
-				{
-					name: '/skip',
-					value: 'Skips the current song that is playing',
-					inline: true,
-				},
-				{
-					name: '/resume',
-					value: 'Resumes the song that is paused',
-					inline: true,
-				},
-				{
-					name: '/queue',
-					value: 'Gets the queue of songs',
-					inline: true,
-				}
-			)
-			.setFooter({
-				text: 'Enjoy the bops!',
-				iconURL: 'https://i.ibb.co/Bt83V56/DADDY-BOP-2.png',
+	if (interaction.member.voice.channel) {
+		// IF USER IS IN A VOICE CHANNEL, PROCEED WITH CONDITIONAL BLOCKS
+		// HELP
+		if (interaction.commandName === 'help') {
+			const embed = new EmbedBuilder()
+				.setTitle('Daddy Bop Commands')
+				.setAuthor({
+					name: 'Daddy Bop',
+					iconURL: 'https://i.ibb.co/Bt83V56/DADDY-BOP-2.png',
+				})
+				.setColor('Random')
+				.setThumbnail('https://i.ibb.co/Bt83V56/DADDY-BOP-2.png')
+				.addFields(
+					{
+						name: '/play',
+						value: 'Plays a given song by a given artist',
+						inline: true,
+					},
+					{
+						name: '/pause',
+						value: 'Pauses the current song that is playing',
+						inline: true,
+					},
+					{
+						name: '/stop',
+						value: 'Stops the current song that is playing',
+						inline: true,
+					},
+					{
+						name: '/skip',
+						value: 'Skips the current song that is playing',
+						inline: true,
+					},
+					{
+						name: '/resume',
+						value: 'Resumes the song that is paused',
+						inline: true,
+					},
+					{
+						name: '/queue',
+						value: 'Gets the queue of songs',
+						inline: true,
+					}
+				)
+				.setFooter({
+					text: 'Enjoy the bops!',
+					iconURL: 'https://i.ibb.co/Bt83V56/DADDY-BOP-2.png',
+				});
+			interaction.reply({ embeds: [embed] });
+		}
+
+		// PLAY
+
+		if (interaction.commandName === 'play') {
+			const song = interaction.options.get('song-name').value;
+			const artist = interaction.options.get('artist').value;
+			const userInput = `${song} ${artist}`;
+
+			if (!interaction.member.voice.channel) {
+				interaction.reply('You gotta join a voice channel, silly! 😝');
+			}
+
+			distube.play(interaction.member.voice.channel, userInput, {
+				member: interaction.member,
+				textChannel: interaction.channel,
+				interaction,
 			});
-		interaction.reply({ embeds: [embed] });
-	}
-
-	if (interaction.commandName === 'play') {
-		const song = interaction.options.get('song-name').value;
-		const artist = interaction.options.get('artist').value;
-		const userInput = `${song} ${artist}`;
-
-		distube.play(interaction.member.voice.channel, userInput, {
-			member: interaction.member,
-			textChannel: interaction.channel,
-			interaction,
-		});
-		interaction.reply(
-			`🎶 **${song}** by **${artist}** 🎶 has been added to the queue! `
-		);
-	}
-
-	if (interaction.commandName === 'stop') {
-		distube.stop(interaction.member.voice.channel);
-		interaction.reply(`🛑 **${client.user.username}** has been stopped! 🛑`);
-	}
-
-	if (interaction.commandName === 'skip') {
-		distube.skip(interaction.member.voice.channel);
-		interaction.reply(`⏭️ Skipping current song ⏩`);
-	}
-
-	if (interaction.commandName === 'pause') {
-		distube.pause(interaction.member.voice.channel);
-		interaction.reply(`⏸️ Paused ⏸️`);
-	}
-
-	if (interaction.commandName === 'resume') {
-		distube.resume(interaction.member.voice.channel);
-		interaction.reply(`⏯️ Resuming ⏯️`);
-	}
-
-	if (interaction.commandName === 'queue') {
-		const queue = distube.getQueue(interaction);
-
-		if (!queue) {
-			interaction.reply(`👀 Nothing playing right now! 👀 `);
-		} else {
 			interaction.reply(
-				`Current queue:\n${queue.songs
-					.map(
-						(song, id) =>
-							`**${id ? id : 'Playing'}**. ${song.name} - \`${
-								song.formattedDuration
-							}\``
-					)
-					.slice(0, 10)
-					.join('\n')}`
+				`🎶 **${song}** by **${artist}** 🎶 has been added to the queue! `
 			);
 		}
+
+		// STOP
+
+		if (interaction.commandName === 'stop') {
+			try {
+				distube.stop(interaction.member.voice.channel);
+				interaction.reply(
+					`🛑 **${client.user.username}** has been stopped! 🛑`
+				);
+			} catch (error) {
+				console.log(error);
+				interaction.reply(`No songs to stop 😢`);
+			}
+		}
+
+		// SKIP
+
+		if (interaction.commandName === 'skip') {
+			try {
+				distube.skip(interaction.member.voice.channel);
+				interaction.reply(`⏭️ Skipping current song ⏩`);
+			} catch (error) {
+				interaction.reply(`No songs to skip 😢`);
+			}
+		}
+
+		// PAUSE
+		if (interaction.commandName === 'pause') {
+			try {
+				distube.pause(interaction.member.voice.channel);
+				interaction.reply(`⏸️ Paused ⏸️`);
+			} catch (error) {
+				interaction.reply(`No songs to pause 😢`);
+			}
+		}
+
+		// RESUME
+		if (interaction.commandName === 'resume') {
+			try {
+				distube.resume(interaction.member.voice.channel);
+				interaction.reply(`⏯️ Resuming ⏯️`);
+			} catch (error) {
+				interaction.reply(`No songs to resume 😢`);
+			}
+		}
+
+		// QUEUE
+		if (interaction.commandName === 'queue') {
+			const queue = distube.getQueue(interaction);
+
+			if (!queue) {
+				interaction.reply(`👀 Nothing playing right now! 👀 `);
+			} else {
+				interaction.reply(
+					`Current queue:\n${queue.songs
+						.map(
+							(song, id) =>
+								`**${id ? id : 'Playing'}**. ${song.name} - \`${
+									song.formattedDuration
+								}\``
+						)
+						.slice(0, 10)
+						.join('\n')}`
+				);
+			}
+		}
+	} else {
+		interaction.reply(`You must join a voice channel!`); // IF USER IS NOT IN A VOICE CHANNEL, REPLY ADV USER TO JOIN A VC
 	}
 });
 
@@ -151,8 +191,6 @@ distube
 		console.error(e);
 		textChannel.send(`An error encountered: ${e.message.slice(0, 2000)}`);
 	})
-	.on('finish', (queue) => queue.textChannel?.send('Finish queue!'))
-	.on('finishSong', (queue) => queue.textChannel?.send('Finish song!'))
 	.on('disconnect', (queue) => queue.textChannel?.send('Disconnected!'))
 	.on('empty', (queue) =>
 		queue.textChannel?.send(
