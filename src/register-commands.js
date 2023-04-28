@@ -40,6 +40,10 @@ const commands = [
     name: 'queue',
     description: 'Gets the queue.'
   },
+  {
+    name: 'help',
+    description: "Lists Daddy Bop's commands!"
+  }
 
 ];
 
