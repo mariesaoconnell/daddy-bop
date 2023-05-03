@@ -16,7 +16,7 @@ const commands = [
       name: 'artist',
       description: 'Artist of the song you want to play.',
       type: ApplicationCommandOptionType.String,
-      required: true
+      required: false
     },
   ]
   },

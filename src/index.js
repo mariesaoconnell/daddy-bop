@@ -21,7 +21,8 @@ const distube = new DisTube(client, {
 	searchCooldown: 30,
 	leaveOnEmpty: false,
 	leaveOnFinish: false,
-	leaveOnStop: false,
+	leaveOnStop: true,
+	leaveOnEmpty: true,
 });
 
 // --- EVENT LISTENER BLOCK ---
@@ -87,8 +88,13 @@ client.on('interactionCreate', (interaction) => {
 		// PLAY
 
 		if (interaction.commandName === 'play') {
+			let artist
+
 			const song = interaction.options.get('song-name').value;
-			const artist = interaction.options.get('artist').value;
+			if(interaction.options.get('artist')){
+				artist = interaction.options.get('artist').value;
+			}
+
 			const userInput = `${song} ${artist}`;
 
 			if (!interaction.member.voice.channel) {
@@ -100,9 +106,17 @@ client.on('interactionCreate', (interaction) => {
 				textChannel: interaction.channel,
 				interaction,
 			});
-			interaction.reply(
-				`🎶 **${song}** by **${artist}** 🎶 has been added to the queue! `
-			);
+
+			if(artist){
+				interaction.reply(
+					`🎶 **${song}** by **${artist}** 🎶 has been added to the queue! `
+				);
+			}
+			else {
+				interaction.reply(
+					`🎶 **${song}** 🎶 has been added to the queue! `
+				);
+			}
 		}
 
 		// STOP
@@ -111,7 +125,7 @@ client.on('interactionCreate', (interaction) => {
 			try {
 				distube.stop(interaction.member.voice.channel);
 				interaction.reply(
-					`🛑 **${client.user.username}** has been stopped! 🛑`
+					`🛑 **${client.user.username}** has been stopped & Disconnected! 🛑`
 				);
 			} catch (error) {
 				console.log(error);
@@ -191,10 +205,10 @@ distube
 		console.error(e);
 		textChannel.send(`An error encountered: ${e.message.slice(0, 2000)}`);
 	})
-	.on('disconnect', (queue) => queue.textChannel?.send('Disconnected!'))
+	// .on('disconnect', (queue) => queue.textChannel?.send('***Daddy Bot*** has been Disconnected!'))
 	.on('empty', (queue) =>
 		queue.textChannel?.send(
-			'🚨 The voice channel is empty! Leaving the voice channel... 🚨'
+			"✌️ The voice channel is empty, I'm outta here! ✌️ "
 		)
 	)
 
